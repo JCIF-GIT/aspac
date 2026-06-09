@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASPAC新潟大会 福山JCコミュニティサイト</title>
+  <meta name="description" content="ASPAC新潟大会に福山青年会議所から参加したメンバーのためのコミュニティサイト。イベント写真、しおりPDF、YouTube Liveの視聴が可能です。">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS Style -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ==================== メインアプリケーション画面 ==================== -->
+  <div id="app-container" class="app-container">
+    
+    <!-- ヘッダー -->
+    <header class="main-header">
+      <div class="header-content">
+        <div class="logo-area">
+          <span class="logo-text">ASPAC NIIGATA <span>FUKUYAMA JC</span></span>
+        </div>
+        <nav class="tab-navigation">
+          <button id="tab-btn-home" class="tab-btn active" onclick="switchTab('home')">
+            <span class="icon">🏠</span>ホーム
+          </button>
+          <button id="tab-btn-photos" class="tab-btn" onclick="switchTab('photos')">
+            <span class="icon">📸</span>ギャラリー
+          </button>
+          <button id="tab-btn-survey" class="tab-btn" onclick="switchTab('survey')">
+            <span class="icon">🔍</span>現地調査
+          </button>
+          <button id="tab-btn-shiori" class="tab-btn" onclick="switchTab('shiori')">
+            <span class="icon">📖</span>しおり (PDF)
+          </button>
+          <button id="tab-btn-youtube" class="tab-btn" onclick="switchTab('youtube')">
+            <span class="icon">🎥</span>YouTube Live
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- メインコンテンツエリア -->
+    <main class="main-content">
+      
+      <!-- 0. ホーム -->
+      <section id="content-home" class="content-section active">
+        <div class="hero-section">
+          <div class="hero-overlay">
+            <span class="hero-tag">JCI FUKUYAMA ASPAC MISSION</span>
+            <h1>From NIIGATA to FUKUYAMA</h1>
+            <p class="hero-subtitle">ASPAC新潟大会から学び、未来の福山開催へ繋ぐ</p>
+          </div>
+        </div>
+
+        <div class="message-board-card">
+          <h3 class="message-title">ASPAC誘致への布石</h3>
+          <p class="message-text">
+            私たち福山青年会議所が,将来的にASPAC（アジア太平洋地域会議）をこの福山の地に誘致し、世界と地域を繋ぐ架け橋となるために。<br>
+            この新潟大会での体験は、単なる参加にとどまらず、その卓越した組織運営、歓迎の精神、そして世界中の青年との友情の育み方を直に学び取る極めて重要な機会です。<br>
+            現地で得た学びの一歩一歩が、福山JCの未来を実現するための強固な礎となります。<br>
+            新潟の熱気からすべてを吸収し、福山への成長の力へと変えていきましょう。
+          </p>
+        </div>
+
+        <div class="home-actions">
+          <a href="https://jciaspac2026.com/ja/" target="_blank" class="btn btn-primary btn-lg-link">
+            <span class="icon">🌐</span> JCI ASPAC 2026 新潟大会 公式サイトはこちら <span>→</span>
+          </a>
+        </div>
+      </section>
+      
+      <!-- 1. ギャラリー -->
+      <section id="content-photos" class="content-section">
+        <div class="section-header">
+          <div>
+            <h2>ASPAC新潟大会記録</h2>
+            <p class="section-desc">メンバーが撮影した写真がGoogleドライブから同期されます。</p>
+          </div>
+          <button id="upload-drive-btn" class="btn btn-primary" onclick="openUploadDrive()">
+            <span class="icon">📤</span>写真をアップロードする
+          </button>
+        </div>
+
+        <!-- 写真表示エリア -->
+        <div id="photo-gallery-container">
+          <div id="photo-loading" class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Googleドライブから写真を読み込んでいます...</p>
+          </div>
+          <div id="photo-empty" class="empty-state" style="display: none;">
+            <span class="empty-icon">📂</span>
+            <p>写真がまだ登録されていません。</p>
+            <p class="empty-sub">Googleドライブのフォルダに写真を追加してください。</p>
+          </div>
+          <!-- グリッド表示 -->
+          <div id="photo-grid" class="photo-grid"></div>
+        </div>
+      </section>
+
+      <!-- 1.5. 現地調査 -->
+      <section id="content-survey" class="content-section">
+        <div class="section-header">
+          <div>
+            <h2>現地調査用ギャラリー</h2>
+            <p class="section-desc">ASPACを誘致するための調査項目チェックリストと、収集した写真の一覧です。</p>
+          </div>
+          <button id="upload-survey-btn" class="btn btn-primary" onclick="openSurveyDrive()">
+            <span class="icon">📤</span>調査写真をアップロードする
+          </button>
+        </div>
+
+        <!-- 調査案内メッセージ -->
+        <div class="survey-notice-box">
+          <span class="notice-icon">💡</span>
+          <p class="notice-text">以下の調査項目について、現地でセレクトした写真を専用Googleドライブにアップロードしてください。アップロードされた写真は自動的にこのページに反映されます。</p>
+        </div>
+
+        <!-- 調査項目リスト -->
+        <div class="survey-checklist-container">
+          <h3 class="checklist-title"><span class="icon">📋</span> 現地調査項目一覧</h3>
+          <ul class="survey-checklist-grid">
+            <li><span class="check-dot"></span>2026 JCI ASPAC 新潟トレードショー ASPAC にいがたEXPOの事業風景について</li>
+            <li><span class="check-dot"></span>新潟駅、新潟空港、メイン会場、周辺エリアでの歓迎装飾について</li>
+            <li><span class="check-dot"></span>光のプログラム（回遊性向上事業）について ※メイン会場周辺の夜間ライトアップ</li>
+            <li><span class="check-dot"></span>デリゲイツランチについて</li>
+            <li><span class="check-dot"></span>協賛看板について</li>
+            <li><span class="check-dot"></span>インフォメーションブースについて</li>
+            <li><span class="check-dot"></span>運営ボランティア・子ども記者体験の事業風景について</li>
+            <li><span class="check-dot"></span>スピーチコンテストやイングリッシュディベートの事業風景について</li>
+            <li><span class="check-dot"></span>総会について</li>
+            <li><span class="check-dot"></span>開会式、オープニングの事業風景について</li>
+            <li><span class="check-dot"></span>登録の受付の事業風景について</li>
+            <li><span class="check-dot"></span>韓国ナイト</li>
+            <li><span class="check-dot"></span>香港ナイト</li>
+            <li><span class="check-dot"></span>モンゴルナイト</li>
+            <li><span class="check-dot"></span>台湾ナイト</li>
+            <li><span class="check-dot"></span>バングラデシュナイト</li>
+            <li><span class="check-dot"></span>シンガポールナイト</li>
+            <li><span class="check-dot"></span>マレーシアナイト</li>
+            <li><span class="check-dot"></span>フィリピンナイト</li>
+            <li><span class="check-dot"></span>カンボジアナイト</li>
+            <li><span class="check-dot"></span>ベトナムナイト</li>
+            <li><span class="check-dot"></span>インドナイト</li>
+            <li><span class="check-dot"></span>呈茶席について</li>
+            <li><span class="check-dot"></span>閉会式、GALAの事業風景について</li>
+          </ul>
+        </div>
+
+        <!-- 調査用写真ギャラリー -->
+        <div id="survey-gallery-container" class="survey-gallery-container-inner">
+          <h3 class="gallery-sub-title"><span class="icon">📸</span> 現地調査写真一覧</h3>
+          <div id="survey-loading" class="loading-spinner">
+            <div class="spinner"></div>
+            <p>現地調査写真を読み込んでいます...</p>
+          </div>
+          <div id="survey-empty" class="empty-state" style="display: none;">
+            <span class="empty-icon">📂</span>
+            <p>写真がまだ登録されていません。</p>
+            <p class="empty-sub">専用Googleドライブのフォルダに調査写真をアップロードしてください。</p>
+          </div>
+          <!-- グリッド表示 -->
+          <div id="survey-grid" class="photo-grid"></div>
+        </div>
+      </section>
+
+      <!-- 2. しおり(PDF) -->
+      <section id="content-shiori" class="content-section">
+        <div class="section-header">
+          <div>
+            <h2>大会しおり</h2>
+            <p class="section-desc">ASPAC新潟大会の福山JC公式しおり（PDF）を閲覧できます。</p>
+          </div>
+          <a id="shiori-download-btn" href="#" target="_blank" class="btn btn-outline">
+            <span class="icon">⬇️</span>PDFを別タブで開く
+          </a>
+        </div>
+        <div class="pdf-viewer-container">
+          <iframe id="shiori-iframe" src="" frameborder="0" allow="autoplay"></iframe>
+        </div>
+      </section>
+
+      <!-- 3. YouTube Live -->
+      <section id="content-youtube" class="content-section">
+        <div class="section-header">
+          <div>
+            <h2>YouTube Live 配信</h2>
+            <p class="section-desc">現地からのライブ中継や、後ほど放送される動画をこちらで視聴できます。</p>
+          </div>
+        </div>
+        <div class="youtube-player-container">
+          <div id="youtube-loading" class="loading-spinner">
+            <div class="spinner"></div>
+            <p>配信情報を読み込んでいます...</p>
+          </div>
+          <div id="youtube-empty" class="empty-state" style="display: none;">
+            <span class="empty-icon">📺</span>
+            <p>現在、YouTubeのライブ配信URLが設定されていません。</p>
+          </div>
+          <div id="youtube-wrapper" class="youtube-wrapper" style="display: none;">
+            <iframe id="youtube-iframe" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- 画像拡大プレビューモーダル -->
+  <div id="photo-modal" class="modal" onclick="closePhotoModal(event)">
+    <span class="close-modal" onclick="closePhotoModal(event)">&times;</span>
+    <img class="modal-content" id="modal-img">
+    <div id="modal-caption" class="modal-caption"></div>
+  </div>
+
+  <!-- 設定ファイル読み込み -->
+  <script src="config.js"></script>
+  <!-- アプリケーションロジック -->
+  <script src="js/app.js" defer></script>
+</body>
+</html>
