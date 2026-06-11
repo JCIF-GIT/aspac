@@ -809,3 +809,204 @@ iframe {
   }
 }
 
+/* ==========================================================================
+   追加スタイル: ログイン不要アップロード機能
+   ========================================================================== */
+.upload-modal-overlay {
+  background-color: rgba(31, 58, 96, 0.4) !important; /* 明るいガラス背景 */
+  backdrop-filter: blur(12px) !important;
+  transition: var(--transition-smooth);
+}
+
+.upload-modal-card {
+  position: relative;
+  background: var(--grad-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 35px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 20px 50px rgba(31, 58, 96, 0.15), var(--shadow-glass);
+  animation: zoomIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.upload-modal-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-brand-blue-dark);
+}
+
+.upload-modal-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: -12px;
+}
+
+.close-modal-btn {
+  position: absolute;
+  top: 20px;
+  right: 25px;
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  line-height: 1;
+}
+
+.close-modal-btn:hover {
+  color: var(--color-accent-orange);
+  transform: rotate(90deg);
+}
+
+/* ドラッグ＆ドロップゾーン */
+.drop-zone {
+  border: 2px dashed rgba(58, 103, 177, 0.3);
+  border-radius: var(--radius-md);
+  padding: 35px 20px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--color-brand-blue-mid);
+  background: rgba(58, 103, 177, 0.05);
+  box-shadow: var(--shadow-glow);
+  transform: scale(0.99);
+}
+
+.drop-icon {
+  font-size: 2.2rem;
+  color: var(--color-brand-blue-light);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+.drop-text {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* プレビューエリア */
+.upload-preview-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.upload-preview-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 プレビュー */
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-glass);
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
+  background: rgba(0,0,0,0.02);
+}
+
+.upload-preview-wrapper img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-file-info {
+  width: 100%;
+}
+
+.upload-file-info input[type="text"] {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  outline: none;
+  background: rgba(255, 255, 255, 0.8);
+  transition: var(--transition-smooth);
+}
+
+.upload-file-info input[type="text"]:focus {
+  border-color: var(--color-brand-blue-mid);
+  box-shadow: 0 0 0 3px var(--border-focus);
+  background: #ffffff;
+}
+
+/* アクションボタン */
+.upload-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.upload-modal-actions .btn {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+}
+
+.upload-modal-actions .btn-primary:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.upload-modal-actions .btn-primary:disabled:hover {
+  transform: none;
+  opacity: 1;
+}
+
+/* ステータス・ローディング */
+.upload-status-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.upload-status-container .spinner {
+  width: 24px;
+  height: 24px;
+  border-width: 2.5px;
+}
+
+#upload-status-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-brand-blue-dark);
+}
+
+#upload-status-text.success {
+  color: #10b981; /* 緑 */
+}
+
+#upload-status-text.error {
+  color: #ef4444; /* 赤 */
+}

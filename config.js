@@ -13,5 +13,8 @@ window.CONFIG = {
   SHIORI_FILE_ID: "YOUR_SHIORI_FILE_ID",
 
   // YouTube Live の配信URLが記載されたテキストファイルのGoogleドライブファイルIDを入力してください
-  YOUTUBE_TXT_FILE_ID: "1rBXuDKJnA7d71WUr1nWoLd21XoQ2L8Ln"
+  YOUTUBE_TXT_FILE_ID: "1rBXuDKJnA7d71WUr1nWoLd21XoQ2L8Ln",
+
+  // Google Apps Script (GAS) のウェブアプリURLを入力してください
+  GAS_UPLOAD_URL: "https://script.google.com/macros/s/AKfycbzH05P5ayg7k5C-VfXI3gvw8vnTSg5oSIeIh6ZPhPI4Dmvym25MrAORVcPErJ9Chq0/exec"
 };

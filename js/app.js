@@ -19,6 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 設定の有効性を確認
   checkConfig();
+
+  // アップロード用のドラッグ＆ドロップ初期化
+  initUploadDragAndDrop();
 });
 
 // 各設定がダミーのままか確認する関数
@@ -516,5 +519,284 @@ function openSurveyDrive() {
   }
   const folderUrl = `https://drive.google.com/drive/folders/${window.CONFIG.SURVEY_FOLDER_ID}`;
   window.open(folderUrl, '_blank');
+}
+
+// --------------------------------------------------------------------------
+// 8. ログイン不要アップロード制御 (GAS連携)
+// --------------------------------------------------------------------------
+let uploadState = {
+  destType: 'photos', // 'photos' または 'survey'
+  file: null,
+  base64Data: null,
+  mimeType: null,
+  isUploading: false
+};
+
+// ドラッグ＆ドロップのイベントリスナー初期化
+function initUploadDragAndDrop() {
+  // 動的に追加された要素や既存要素に対してリスナー登録
+  const dropZone = document.getElementById('drop-zone');
+  if (!dropZone) return;
+
+  // ドラッグ進入・移動時
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.add('dragover');
+    }, false);
+  });
+
+  // ドラッグ退出・終了時
+  ['dragleave', 'dragend', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.remove('dragover');
+    }, false);
+  });
+
+  // ドロップされた時
+  dropZone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files.length > 0) {
+      processSelectedFile(files[0]);
+    }
+  }, false);
+}
+
+// アップロードモーダルを開く
+function openUploadModal(type) {
+  uploadState.destType = type;
+  
+  const modal = document.getElementById('upload-modal');
+  const destText = document.getElementById('upload-dest-text');
+  
+  if (type === 'photos') {
+    destText.innerText = 'アップロード先: 新潟大会記録ギャラリー';
+  } else {
+    destText.innerText = 'アップロード先: 現地調査ギャラリー';
+  }
+  
+  // 状態とUIのリセット
+  resetUploadState();
+  
+  if (modal) modal.style.display = 'flex';
+}
+
+// アップロードモーダルを閉じる
+function closeUploadModalDirect() {
+  if (uploadState.isUploading) {
+    if (!confirm('アップロードを中止してよろしいですか？')) return;
+  }
+  const modal = document.getElementById('upload-modal');
+  if (modal) modal.style.display = 'none';
+  resetUploadState();
+}
+
+// 状態のリセット
+function resetUploadState() {
+  uploadState.file = null;
+  uploadState.base64Data = null;
+  uploadState.mimeType = null;
+  uploadState.isUploading = false;
+  
+  const dropZone = document.getElementById('drop-zone');
+  const previewContainer = document.getElementById('upload-preview-container');
+  const previewImg = document.getElementById('upload-preview-img');
+  const filenameInput = document.getElementById('upload-filename-input');
+  const submitBtn = document.getElementById('submit-upload-btn');
+  const statusContainer = document.getElementById('upload-status-container');
+  const statusText = document.getElementById('upload-status-text');
+  const fileInput = document.getElementById('file-input');
+  
+  if (dropZone) dropZone.style.display = 'flex';
+  if (previewContainer) previewContainer.style.display = 'none';
+  if (previewImg) previewImg.src = '';
+  if (filenameInput) filenameInput.value = '';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'アップロード開始';
+  }
+  if (statusContainer) statusContainer.style.display = 'none';
+  if (statusText) {
+    statusText.innerText = 'アップロード中...';
+    statusText.className = '';
+  }
+  if (fileInput) fileInput.value = '';
+}
+
+// ファイル選択をトリガー
+function triggerFileSelect() {
+  const fileInput = document.getElementById('file-input');
+  if (fileInput) fileInput.click();
+}
+
+// ファイル選択時のハンドリング
+function handleFileSelect(e) {
+  const files = e.target.files;
+  if (files.length > 0) {
+    processSelectedFile(files[0]);
+  }
+}
+
+// 選択されたファイルの処理とプレビュー表示
+function processSelectedFile(file) {
+  if (!file.type.match('image.*')) {
+    alert('画像ファイルのみアップロード可能です。');
+    return;
+  }
+  
+  uploadState.file = file;
+  uploadState.mimeType = file.type;
+  
+  // プレビューのロードとBase64変換
+  const reader = new FileReader();
+  
+  // UIのロード中表示
+  const submitBtn = document.getElementById('submit-upload-btn');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'ファイルを読み込み中...';
+  }
+  
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    
+    // Base64データ部分だけを抽出する (data:image/jpeg;base64,xxxx -> xxxx)
+    uploadState.base64Data = dataUrl.split(',')[1];
+    
+    // プレビュー表示
+    const previewImg = document.getElementById('upload-preview-img');
+    const previewContainer = document.getElementById('upload-preview-container');
+    const dropZone = document.getElementById('drop-zone');
+    const filenameInput = document.getElementById('upload-filename-input');
+    
+    if (previewImg) previewImg.src = dataUrl;
+    if (previewContainer) previewContainer.style.display = 'flex';
+    if (dropZone) dropZone.style.display = 'none';
+    if (filenameInput) {
+      // 拡張子を除いたファイル名をデフォルトタイトルとして入力
+      filenameInput.value = file.name.replace(/\.[^/.]+$/, "");
+    }
+    
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerText = 'アップロード開始';
+    }
+  };
+  
+  reader.readAsDataURL(file);
+}
+
+// GASへのアップロード実行
+function startUpload() {
+  const gasUrl = window.CONFIG.GAS_UPLOAD_URL;
+  
+  if (!gasUrl || gasUrl === 'YOUR_GAS_UPLOAD_URL' || gasUrl === '') {
+    alert('Google Apps Script のウェブアプリURLが設定されていません。\nconfig.js の GAS_UPLOAD_URL を設定してください。');
+    return;
+  }
+  
+  if (!uploadState.base64Data) {
+    alert('アップロードするファイルが選択されていません。');
+    return;
+  }
+  
+  // フォルダIDの決定
+  let folderId = '';
+  if (uploadState.destType === 'photos') {
+    folderId = window.CONFIG.PHOTO_FOLDER_ID;
+  } else if (uploadState.destType === 'survey') {
+    folderId = window.CONFIG.SURVEY_FOLDER_ID;
+  }
+  
+  if (!folderId || folderId.startsWith('YOUR_')) {
+    alert('保存先のGoogleドライブフォルダIDが正しく設定されていません。');
+    return;
+  }
+  
+  // ファイル名の取得 (空欄なら元のファイル名)
+  const titleInput = document.getElementById('upload-filename-input');
+  let filename = uploadState.file.name;
+  if (titleInput && titleInput.value.trim() !== '') {
+    const extension = uploadState.file.name.substring(uploadState.file.name.lastIndexOf('.'));
+    filename = titleInput.value.trim() + extension;
+  }
+  
+  // UIの状態をアップロード中に変更
+  uploadState.isUploading = true;
+  
+  const submitBtn = document.getElementById('submit-upload-btn');
+  const cancelBtn = document.getElementById('cancel-upload-btn');
+  const statusContainer = document.getElementById('upload-status-container');
+  const statusText = document.getElementById('upload-status-text');
+  
+  if (submitBtn) submitBtn.disabled = true;
+  if (cancelBtn) cancelBtn.disabled = true;
+  if (statusContainer) statusContainer.style.display = 'flex';
+  if (statusText) {
+    statusText.innerText = '写真をアップロード中... (約10〜15秒かかります)';
+    statusText.className = '';
+  }
+  
+  // POST用データの作成 (Simple Requestにするため JSON 文字列を text/plain として送信)
+  const payload = {
+    file: uploadState.base64Data,
+    filename: filename,
+    mimeType: uploadState.mimeType,
+    folderId: folderId
+  };
+  
+  fetch(gasUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/plain'
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTPエラー: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data.status === 'success') {
+      if (statusText) {
+        statusText.innerText = 'アップロードに成功しました！';
+        statusText.classList.add('success');
+      }
+      
+      // 2秒後にモーダルを閉じ、ギャラリーを更新する
+      setTimeout(() => {
+        const modal = document.getElementById('upload-modal');
+        if (modal) modal.style.display = 'none';
+        resetUploadState();
+        
+        // アップロード先に合わせてギャラリーをリロード
+        if (uploadState.destType === 'photos') {
+          fetchPhotos();
+        } else if (uploadState.destType === 'survey') {
+          fetchSurveyPhotos();
+        }
+      }, 1500);
+      
+    } else {
+      throw new Error(data.message || 'アップロード処理中にエラーが発生しました。');
+    }
+  })
+  .catch(error => {
+    console.error('Upload Error:', error);
+    uploadState.isUploading = false;
+    
+    if (submitBtn) submitBtn.disabled = false;
+    if (cancelBtn) cancelBtn.disabled = false;
+    if (statusText) {
+      statusText.innerText = `エラー: ${error.message}`;
+      statusText.classList.add('error');
+    }
+  });
 }
 

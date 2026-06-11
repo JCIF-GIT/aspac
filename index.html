@@ -1,24 +1,28 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ASPAC新潟大会 福山JCコミュニティサイト</title>
-  <meta name="description" content="ASPAC新潟大会のコミュニティサイト。ギャラリー、しおりの閲覧、YouTube Liveの視聴が可能です。">
-  
+  <meta name="description" content="ASPAC新潟大会に福山青年会議所から参加したメンバーのためのコミュニティサイト。イベント写真、しおりPDF、YouTube Liveの視聴が可能です。">
+
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+    rel="stylesheet">
+
   <!-- CSS Style -->
   <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
   <!-- ==================== メインアプリケーション画面 ==================== -->
   <div id="app-container" class="app-container">
-    
+
     <!-- ヘッダー -->
     <header class="main-header">
       <div class="header-content">
@@ -47,7 +51,7 @@
 
     <!-- メインコンテンツエリア -->
     <main class="main-content">
-      
+
       <!-- 0. ホーム -->
       <section id="content-home" class="content-section active">
         <div class="hero-section">
@@ -61,9 +65,9 @@
         <div class="message-board-card">
           <h3 class="message-title">ASPAC誘致への布石</h3>
           <p class="message-text">
-            私たち福山青年会議所が,将来的にASPACを福山の地に誘致し、世界と地域を繋ぐ架け橋となるために。<br>
-            この新潟大会での体験は、単なる参加にとどまらず、その卓越した組織運営、歓迎の精神、そして世界中の青年との友情の育み方を直に学び取る極めて重要な機会です。<br>
-            現地で得た学びの一歩一歩が、福山JCの未来を実現するための強固な礎となります。<br>
+            私たち福山青年会議所が将来的にASPAC（アジア太平洋地域会議）をこの福山の地に誘致し、世界と地域を繋ぐ架け橋となるために。<br>
+            この新潟大会での体験は、単なる参加にとどまらず、組織運営、歓迎の精神、そして世界中の青年との友情の育み方を直に学び取る極めて重要な機会です。<br>
+            現地で得た学びの一つ一つが、福山JCの未来を実現するための強固な礎となります。<br>
             新潟の熱気からすべてを吸収し、福山への成長の力へと変えていきましょう。
           </p>
         </div>
@@ -74,7 +78,7 @@
           </a>
         </div>
       </section>
-      
+
       <!-- 1. ギャラリー -->
       <section id="content-photos" class="content-section">
         <div class="section-header">
@@ -82,7 +86,7 @@
             <h2>ASPAC新潟大会記録</h2>
             <p class="section-desc">メンバーが撮影した写真がGoogleドライブから同期されます。</p>
           </div>
-          <button id="upload-drive-btn" class="btn btn-primary" onclick="openUploadDrive()">
+          <button id="upload-drive-btn" class="btn btn-primary" onclick="openUploadModal('photos')">
             <span class="icon">📤</span>写真をアップロードする
           </button>
         </div>
@@ -110,7 +114,7 @@
             <h2>現地調査用ギャラリー</h2>
             <p class="section-desc">ASPACを誘致するための調査項目チェックリストと、収集した写真の一覧です。</p>
           </div>
-          <button id="upload-survey-btn" class="btn btn-primary" onclick="openSurveyDrive()">
+          <button id="upload-survey-btn" class="btn btn-primary" onclick="openUploadModal('survey')">
             <span class="icon">📤</span>調査写真をアップロードする
           </button>
         </div>
@@ -203,7 +207,9 @@
             <p>現在、YouTubeのライブ配信URLが設定されていません。</p>
           </div>
           <div id="youtube-wrapper" class="youtube-wrapper" style="display: none;">
-            <iframe id="youtube-iframe" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            <iframe id="youtube-iframe" src="" title="YouTube video player" frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen></iframe>
           </div>
         </div>
       </section>
@@ -219,9 +225,48 @@
     <div id="modal-caption" class="modal-caption"></div>
   </div>
 
+  <!-- アップロード用モーダルダイアログ (新規追加) -->
+  <div id="upload-modal" class="modal upload-modal-overlay">
+    <div class="upload-modal-card">
+      <span class="close-modal-btn" onclick="closeUploadModalDirect()">&times;</span>
+      <h3 class="upload-modal-title">📷 写真をアップロード</h3>
+      <p id="upload-dest-text" class="upload-modal-desc">アップロード先: ギャラリー</p>
+
+      <!-- ドラッグ＆ドロップエリア -->
+      <div id="drop-zone" class="drop-zone" onclick="triggerFileSelect()">
+        <span class="drop-icon">📤</span>
+        <p class="drop-text">ここに画像をドラッグ＆ドロップするか、<br>クリックしてファイルを選択してください。</p>
+        <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+      </div>
+
+      <!-- 選択されたファイルプレビューと情報 -->
+      <div id="upload-preview-container" class="upload-preview-container" style="display: none;">
+        <div class="upload-preview-wrapper">
+          <img id="upload-preview-img" src="" alt="プレビュー">
+        </div>
+        <div class="upload-file-info">
+          <input type="text" id="upload-filename-input" placeholder="写真のタイトルを入力（任意）">
+        </div>
+      </div>
+
+      <!-- アクションボタン -->
+      <div class="upload-modal-actions">
+        <button id="cancel-upload-btn" class="btn btn-outline" onclick="closeUploadModalDirect()">キャンセル</button>
+        <button id="submit-upload-btn" class="btn btn-primary" onclick="startUpload()" disabled>アップロード開始</button>
+      </div>
+
+      <!-- ステータス・進捗表示 -->
+      <div id="upload-status-container" class="upload-status-container" style="display: none;">
+        <div class="spinner"></div>
+        <p id="upload-status-text">アップロード中...</p>
+      </div>
+    </div>
+  </div>
+
   <!-- 設定ファイル読み込み -->
   <script src="config.js"></script>
   <!-- アプリケーションロジック -->
   <script src="js/app.js" defer></script>
 </body>
+
 </html>
