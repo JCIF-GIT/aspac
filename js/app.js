@@ -405,12 +405,19 @@ function fetchYouTube() {
 }
 
 // YouTubeのURLや共有リンクから動画IDを取り出すユーティリティ
-function extractYouTubeId(url) {
-  if (!url) return null;
-  // 通常URL, 共有URL, モバイルURL, 埋め込みURLに対応する正規表現
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
+function extractYouTubeId(text) {
+  if (!text) return null;
+  const cleanText = text.trim();
+
+  // もし11文字の動画IDが直接入力されている場合 (例: dQw4w9WgXcQ)
+  if (/^[a-zA-Z0-9_-]{11}$/.test(cleanText)) {
+    return cleanText;
+  }
+
+  // 通常URL, 共有URL, モバイルURL, 埋め込みURL, ライブURL(/live/), ショート(/shorts/)に対応する正規表現
+  const regExp = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/|live\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
+  const match = cleanText.match(regExp);
+  return (match && match[1].length === 11) ? match[1] : null;
 }
 
 // --------------------------------------------------------------------------
