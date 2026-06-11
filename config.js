@@ -10,7 +10,7 @@ window.CONFIG = {
   SURVEY_FOLDER_ID: "16utkdDUlgukAFyfz4x1sEcZVz0M9LuKo",
 
   // しおりPDFのGoogleドライブファイルIDを入力してください
-  SHIORI_FILE_ID: "YOUR_SHIORI_FILE_ID",
+  SHIORI_FILE_ID: "16g_j_07LIxbG467ODiPS-6u172W_wTYD",
 
   // YouTube Live の配信URLが記載されたテキストファイルのGoogleドライブファイルIDを入力してください
   YOUTUBE_TXT_FILE_ID: "1rBXuDKJnA7d71WUr1nWoLd21XoQ2L8Ln",
