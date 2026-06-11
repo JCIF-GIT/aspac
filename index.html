@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ASPAC新潟大会 福山JCコミュニティサイト</title>
-  <meta name="description" content="ASPAC新潟大会に福山青年会議所から参加したメンバーのためのコミュニティサイト。イベント写真、しおりPDF、YouTube Liveの視聴が可能です。">
+  <meta name="description" content="ASPAC新潟大会における福山青年会議所メンバーのためのコミュニティサイト。イベント写真、しおりPDF、YouTube Liveの視聴が可能です。">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -65,7 +65,7 @@
         <div class="message-board-card">
           <h3 class="message-title">ASPAC誘致への布石</h3>
           <p class="message-text">
-            私たち福山青年会議所が将来的にASPAC（アジア太平洋地域会議）をこの福山の地に誘致し、世界と地域を繋ぐ架け橋となるために。<br>
+            私たち福山青年会議所が将来的にASPACを福山の地に誘致し、世界と地域を繋ぐ架け橋となるために。<br>
             この新潟大会での体験は、単なる参加にとどまらず、組織運営、歓迎の精神、そして世界中の青年との友情の育み方を直に学び取る極めて重要な機会です。<br>
             現地で得た学びの一つ一つが、福山JCの未来を実現するための強固な礎となります。<br>
             新潟の熱気からすべてを吸収し、福山への成長の力へと変えていきましょう。
@@ -229,24 +229,27 @@
   <div id="upload-modal" class="modal upload-modal-overlay">
     <div class="upload-modal-card">
       <span class="close-modal-btn" onclick="closeUploadModalDirect()">&times;</span>
-      <h3 class="upload-modal-title">📷 写真をアップロード</h3>
+      <h3 class="upload-modal-title">📷 写真を一括アップロード</h3>
       <p id="upload-dest-text" class="upload-modal-desc">アップロード先: ギャラリー</p>
 
       <!-- ドラッグ＆ドロップエリア -->
       <div id="drop-zone" class="drop-zone" onclick="triggerFileSelect()">
         <span class="drop-icon">📤</span>
-        <p class="drop-text">ここに画像をドラッグ＆ドロップするか、<br>クリックしてファイルを選択してください。</p>
-        <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+        <p class="drop-text">ここに画像をドラッグ＆ドロップするか、<br>クリックしてファイルを選択してください（複数選択可）。</p>
+        <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="handleFileSelect(event)"
+          multiple>
       </div>
 
       <!-- 選択されたファイルプレビューと情報 -->
       <div id="upload-preview-container" class="upload-preview-container" style="display: none;">
-        <div class="upload-preview-wrapper">
-          <img id="upload-preview-img" src="" alt="プレビュー">
+        <p class="upload-preview-count" id="upload-preview-count">選択された写真 (0枚)</p>
+        <div id="upload-preview-grid" class="upload-preview-grid">
+          <!-- 動的にサムネイルが挿入されます -->
         </div>
-        <div class="upload-file-info">
-          <input type="text" id="upload-filename-input" placeholder="写真のタイトルを入力（任意）">
-        </div>
+        <button type="button" class="btn btn-outline"
+          style="width: 100%; padding: 8px; font-size: 0.85rem; margin-top: 5px;" onclick="triggerFileSelect()">
+          ➕ 写真を追加する
+        </button>
       </div>
 
       <!-- アクションボタン -->

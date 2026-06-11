@@ -217,10 +217,20 @@ function renderPhotos(photos) {
   // 写真を日付ごとに振り分け (日本時間基準)
   photos.forEach(photo => {
     const date = new Date(photo.createdTime);
-    // JSTの月/日を表現する文字列を作成 (例: "6/11")
-    const month = date.toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric' });
-    const day = date.toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo', day: 'numeric' });
-    const localDateKey = `${month}/${day}`;
+    // 確実にJSTの月・日を取得する（Intl.DateTimeFormatを使用）
+    const formatter = new Intl.DateTimeFormat('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      month: 'numeric',
+      day: 'numeric'
+    });
+    const parts = formatter.formatToParts(date);
+    let month = '';
+    let day = '';
+    for (const part of parts) {
+      if (part.type === 'month') month = part.value;
+      if (part.type === 'day') day = part.value;
+    }
+    const localDateKey = `${parseInt(month, 10)}/${parseInt(day, 10)}`;
 
     if (groups[localDateKey]) {
       groups[localDateKey].photos.push(photo);
@@ -526,15 +536,16 @@ function openSurveyDrive() {
 // --------------------------------------------------------------------------
 let uploadState = {
   destType: 'photos', // 'photos' または 'survey'
-  file: null,
-  base64Data: null,
-  mimeType: null,
-  isUploading: false
+  filesQueue: [],     // 選択されたファイルのキュー [ { file, base64Data, id } ]
+  isUploading: false,
+  totalFiles: 0,
+  uploadedCount: 0,
+  successCount: 0,
+  errorCount: 0
 };
 
 // ドラッグ＆ドロップのイベントリスナー初期化
 function initUploadDragAndDrop() {
-  // 動的に追加された要素や既存要素に対してリスナー登録
   const dropZone = document.getElementById('drop-zone');
   if (!dropZone) return;
 
@@ -561,7 +572,7 @@ function initUploadDragAndDrop() {
     const dt = e.dataTransfer;
     const files = dt.files;
     if (files.length > 0) {
-      processSelectedFile(files[0]);
+      processSelectedFiles(files);
     }
   }, false);
 }
@@ -597,28 +608,30 @@ function closeUploadModalDirect() {
 
 // 状態のリセット
 function resetUploadState() {
-  uploadState.file = null;
-  uploadState.base64Data = null;
-  uploadState.mimeType = null;
+  uploadState.filesQueue = [];
   uploadState.isUploading = false;
+  uploadState.totalFiles = 0;
+  uploadState.uploadedCount = 0;
+  uploadState.successCount = 0;
+  uploadState.errorCount = 0;
   
   const dropZone = document.getElementById('drop-zone');
   const previewContainer = document.getElementById('upload-preview-container');
-  const previewImg = document.getElementById('upload-preview-img');
-  const filenameInput = document.getElementById('upload-filename-input');
+  const previewGrid = document.getElementById('upload-preview-grid');
   const submitBtn = document.getElementById('submit-upload-btn');
+  const cancelBtn = document.getElementById('cancel-upload-btn');
   const statusContainer = document.getElementById('upload-status-container');
   const statusText = document.getElementById('upload-status-text');
   const fileInput = document.getElementById('file-input');
   
   if (dropZone) dropZone.style.display = 'flex';
   if (previewContainer) previewContainer.style.display = 'none';
-  if (previewImg) previewImg.src = '';
-  if (filenameInput) filenameInput.value = '';
+  if (previewGrid) previewGrid.innerHTML = '';
   if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.innerText = 'アップロード開始';
   }
+  if (cancelBtn) cancelBtn.disabled = false;
   if (statusContainer) statusContainer.style.display = 'none';
   if (statusText) {
     statusText.innerText = 'アップロード中...';
@@ -637,61 +650,114 @@ function triggerFileSelect() {
 function handleFileSelect(e) {
   const files = e.target.files;
   if (files.length > 0) {
-    processSelectedFile(files[0]);
+    processSelectedFiles(files);
   }
 }
 
-// 選択されたファイルの処理とプレビュー表示
-function processSelectedFile(file) {
-  if (!file.type.match('image.*')) {
-    alert('画像ファイルのみアップロード可能です。');
-    return;
-  }
-  
-  uploadState.file = file;
-  uploadState.mimeType = file.type;
-  
-  // プレビューのロードとBase64変換
-  const reader = new FileReader();
-  
-  // UIのロード中表示
+// 選択されたファイルの処理とプレビューキューへの追加
+function processSelectedFiles(files) {
   const submitBtn = document.getElementById('submit-upload-btn');
   if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.innerText = 'ファイルを読み込み中...';
   }
+
+  let loadedCount = 0;
+  const imageFiles = Array.from(files).filter(f => f.type.match('image.*'));
   
-  reader.onload = (e) => {
-    const dataUrl = e.target.result;
-    
-    // Base64データ部分だけを抽出する (data:image/jpeg;base64,xxxx -> xxxx)
-    uploadState.base64Data = dataUrl.split(',')[1];
-    
-    // プレビュー表示
-    const previewImg = document.getElementById('upload-preview-img');
-    const previewContainer = document.getElementById('upload-preview-container');
-    const dropZone = document.getElementById('drop-zone');
-    const filenameInput = document.getElementById('upload-filename-input');
-    
-    if (previewImg) previewImg.src = dataUrl;
-    if (previewContainer) previewContainer.style.display = 'flex';
-    if (dropZone) dropZone.style.display = 'none';
-    if (filenameInput) {
-      // 拡張子を除いたファイル名をデフォルトタイトルとして入力
-      filenameInput.value = file.name.replace(/\.[^/.]+$/, "");
-    }
-    
-    if (submitBtn) {
+  if (imageFiles.length === 0) {
+    if (submitBtn && uploadState.filesQueue.length > 0) {
       submitBtn.disabled = false;
       submitBtn.innerText = 'アップロード開始';
+    } else if (submitBtn) {
+      submitBtn.innerText = 'アップロード開始';
     }
-  };
-  
-  reader.readAsDataURL(file);
+    return;
+  }
+
+  imageFiles.forEach(file => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      const base64Data = dataUrl.split(',')[1];
+      const fileId = 'upload-file-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      
+      uploadState.filesQueue.push({
+        id: fileId,
+        file: file,
+        mimeType: file.type,
+        base64Data: base64Data,
+        dataUrl: dataUrl
+      });
+
+      loadedCount++;
+      
+      if (loadedCount === imageFiles.length) {
+        renderUploadPreviews();
+      }
+    };
+    
+    reader.readAsDataURL(file);
+  });
 }
 
-// GASへのアップロード実行
-function startUpload() {
+// プレビューのレンダリング
+function renderUploadPreviews() {
+  const previewGrid = document.getElementById('upload-preview-grid');
+  const previewContainer = document.getElementById('upload-preview-container');
+  const dropZone = document.getElementById('drop-zone');
+  const countText = document.getElementById('upload-preview-count');
+  const submitBtn = document.getElementById('submit-upload-btn');
+
+  if (!previewGrid || !previewContainer) return;
+
+  previewGrid.innerHTML = '';
+  
+  if (uploadState.filesQueue.length === 0) {
+    previewContainer.style.display = 'none';
+    if (dropZone) dropZone.style.display = 'flex';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'アップロード開始';
+    }
+    return;
+  }
+
+  if (dropZone) dropZone.style.display = 'none';
+  previewContainer.style.display = 'flex';
+  
+  if (countText) {
+    countText.innerText = `選択された写真 (${uploadState.filesQueue.length}枚)`;
+  }
+
+  uploadState.filesQueue.forEach(item => {
+    const previewItem = document.createElement('div');
+    previewItem.className = 'upload-preview-item';
+    previewItem.id = item.id;
+
+    previewItem.innerHTML = `
+      <img src="${item.dataUrl}" alt="${item.file.name}">
+      <button class="remove-preview-btn" onclick="removePreviewItem('${item.id}')">&times;</button>
+    `;
+    
+    previewGrid.appendChild(previewItem);
+  });
+
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.innerText = 'アップロード開始';
+  }
+}
+
+// プレビュー個別の削除処理
+function removePreviewItem(id) {
+  uploadState.filesQueue = uploadState.filesQueue.filter(item => item.id !== id);
+  renderUploadPreviews();
+}
+
+// GASへの一括・順次アップロード実行
+async function startUpload() {
   const gasUrl = window.CONFIG.GAS_UPLOAD_URL;
   
   if (!gasUrl || gasUrl === 'YOUR_GAS_UPLOAD_URL' || gasUrl === '') {
@@ -699,7 +765,7 @@ function startUpload() {
     return;
   }
   
-  if (!uploadState.base64Data) {
+  if (uploadState.filesQueue.length === 0) {
     alert('アップロードするファイルが選択されていません。');
     return;
   }
@@ -717,16 +783,12 @@ function startUpload() {
     return;
   }
   
-  // ファイル名の取得 (空欄なら元のファイル名)
-  const titleInput = document.getElementById('upload-filename-input');
-  let filename = uploadState.file.name;
-  if (titleInput && titleInput.value.trim() !== '') {
-    const extension = uploadState.file.name.substring(uploadState.file.name.lastIndexOf('.'));
-    filename = titleInput.value.trim() + extension;
-  }
-  
   // UIの状態をアップロード中に変更
   uploadState.isUploading = true;
+  uploadState.totalFiles = uploadState.filesQueue.length;
+  uploadState.uploadedCount = 0;
+  uploadState.successCount = 0;
+  uploadState.errorCount = 0;
   
   const submitBtn = document.getElementById('submit-upload-btn');
   const cancelBtn = document.getElementById('cancel-upload-btn');
@@ -736,67 +798,92 @@ function startUpload() {
   if (submitBtn) submitBtn.disabled = true;
   if (cancelBtn) cancelBtn.disabled = true;
   if (statusContainer) statusContainer.style.display = 'flex';
-  if (statusText) {
-    statusText.innerText = '写真をアップロード中... (約10〜15秒かかります)';
-    statusText.className = '';
+
+  // 削除ボタンを非表示にする（送信中の誤操作防止）
+  document.querySelectorAll('.remove-preview-btn').forEach(btn => {
+    btn.style.display = 'none';
+  });
+  
+  // キュー内のファイルを1枚ずつ直列（順次）でアップロード
+  for (let i = 0; i < uploadState.filesQueue.length; i++) {
+    const item = uploadState.filesQueue[i];
+    const currentNum = i + 1;
+    
+    if (statusText) {
+      statusText.innerText = `写真をアップロード中: ${currentNum} / ${uploadState.totalFiles} 枚目 (${item.file.name})`;
+    }
+    
+    try {
+      await uploadSingleFile(item, folderId, gasUrl);
+      uploadState.successCount++;
+    } catch (error) {
+      console.error(`Failed to upload ${item.file.name}:`, error);
+      uploadState.errorCount++;
+    }
   }
   
-  // POST用データの作成 (Simple Requestにするため JSON 文字列を text/plain として送信)
-  const payload = {
-    file: uploadState.base64Data,
-    filename: filename,
-    mimeType: uploadState.mimeType,
-    folderId: folderId
-  };
+  // 全アップロード完了後の処理
+  uploadState.isUploading = false;
   
-  fetch(gasUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'text/plain'
-    },
-    body: JSON.stringify(payload)
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTPエラー: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(data => {
-    if (data.status === 'success') {
-      if (statusText) {
-        statusText.innerText = 'アップロードに成功しました！';
-        statusText.classList.add('success');
-      }
-      
-      // 2秒後にモーダルを閉じ、ギャラリーを更新する
-      setTimeout(() => {
-        const modal = document.getElementById('upload-modal');
-        if (modal) modal.style.display = 'none';
-        resetUploadState();
-        
-        // アップロード先に合わせてギャラリーをリロード
-        if (uploadState.destType === 'photos') {
-          fetchPhotos();
-        } else if (uploadState.destType === 'survey') {
-          fetchSurveyPhotos();
-        }
-      }, 1500);
-      
+  if (statusText) {
+    if (uploadState.errorCount === 0) {
+      statusText.innerText = `すべての写真 (${uploadState.successCount}枚) のアップロードが完了しました！`;
+      statusText.className = 'success';
     } else {
-      throw new Error(data.message || 'アップロード処理中にエラーが発生しました。');
+      statusText.innerText = `アップロード完了 (成功: ${uploadState.successCount}枚, 失敗: ${uploadState.errorCount}枚)`;
+      statusText.className = 'error';
     }
-  })
-  .catch(error => {
-    console.error('Upload Error:', error);
-    uploadState.isUploading = false;
+  }
+  
+  // 2秒後にモーダルを閉じ、ギャラリーを更新
+  setTimeout(() => {
+    const modal = document.getElementById('upload-modal');
+    if (modal) modal.style.display = 'none';
+    resetUploadState();
     
-    if (submitBtn) submitBtn.disabled = false;
-    if (cancelBtn) cancelBtn.disabled = false;
-    if (statusText) {
-      statusText.innerText = `エラー: ${error.message}`;
-      statusText.classList.add('error');
+    // アップロード先に合わせてギャラリーをリロード
+    if (uploadState.destType === 'photos') {
+      fetchPhotos();
+    } else if (uploadState.destType === 'survey') {
+      fetchSurveyPhotos();
     }
+  }, 2000);
+}
+
+// 1枚のファイルを送信するPromiseラッパー
+function uploadSingleFile(item, folderId, gasUrl) {
+  return new Promise((resolve, reject) => {
+    const payload = {
+      file: item.base64Data,
+      filename: item.file.name,
+      mimeType: item.mimeType,
+      folderId: folderId
+    };
+    
+    fetch(gasUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain'
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTPエラー: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.status === 'success') {
+        resolve(data);
+      } else {
+        reject(new Error(data.message || 'GASアップロード処理失敗'));
+      }
+    })
+    .catch(err => {
+      reject(err);
+    });
   });
 }
+
 
