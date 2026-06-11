@@ -86,9 +86,14 @@
             <h2>ASPAC新潟大会記録</h2>
             <p class="section-desc">メンバーが撮影した写真がGoogleドライブから同期されます。</p>
           </div>
-          <button id="upload-drive-btn" class="btn btn-primary" onclick="openUploadModal('photos')">
-            <span class="icon">📤</span>写真をアップロードする
-          </button>
+          <div class="action-buttons-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button id="view-drive-btn" class="btn btn-outline" onclick="openUploadDrive()">
+              <span class="icon">📂</span>Googleドライブで開く
+            </button>
+            <button id="upload-drive-btn" class="btn btn-primary" onclick="openUploadModal('photos')">
+              <span class="icon">📤</span>写真をアップロードする
+            </button>
+          </div>
         </div>
 
         <!-- 写真表示エリア -->
@@ -114,9 +119,14 @@
             <h2>現地調査用ギャラリー</h2>
             <p class="section-desc">ASPACを誘致するための調査項目チェックリストと、収集した写真の一覧です。</p>
           </div>
-          <button id="upload-survey-btn" class="btn btn-primary" onclick="openUploadModal('survey')">
-            <span class="icon">📤</span>調査写真をアップロードする
-          </button>
+          <div class="action-buttons-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button id="view-survey-btn" class="btn btn-outline" onclick="openSurveyDrive()">
+              <span class="icon">📂</span>Googleドライブで開く
+            </button>
+            <button id="upload-survey-btn" class="btn btn-primary" onclick="openUploadModal('survey')">
+              <span class="icon">📤</span>調査写真をアップロードする
+            </button>
+          </div>
         </div>
 
         <!-- 調査案内メッセージ -->
