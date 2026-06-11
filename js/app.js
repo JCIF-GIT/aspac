@@ -314,11 +314,25 @@ function fetchShiori() {
   const iframe = document.getElementById('shiori-iframe');
   const downloadBtn = document.getElementById('shiori-download-btn');
 
-  if (isConfigDummy() || !window.CONFIG.SHIORI_FILE_ID || window.CONFIG.SHIORI_FILE_ID === 'YOUR_SHIORI_FILE_ID') {
-    // デモ用PDF（ここではダミーのWebサイトやプレビューを表示するか、PDF.jsなどのサンプルを表示）
-    // サンプルとしてGoogleドライブ公式が提供しているPDFビューアテストURLを代用
-    iframe.src = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf-test.pdf';
-    downloadBtn.href = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf-test.pdf';
+  if (!window.CONFIG.SHIORI_FILE_ID || window.CONFIG.SHIORI_FILE_ID === 'YOUR_SHIORI_FILE_ID' || window.CONFIG.SHIORI_FILE_ID === '') {
+    // デモ用表示（外部PDFが接続拒否されるのを防ぐため、data URLを使用）
+    const demoHtml = `
+      <html>
+      <body style="font-family:system-ui, -apple-system, sans-serif; display:flex; justify-content:center; align-items:center; height:90vh; background:#f3f7fa; color:#556070; margin:0; text-align:center;">
+        <div style="padding:20px;">
+          <span style="font-size:3rem; display:block; margin-bottom:15px;">📖</span>
+          <p style="font-size:1.1rem; font-weight:bold; margin-bottom:8px; color:#1f3a60;">しおりプレビュー (デモモード)</p>
+          <p style="font-size:0.85rem; max-width:320px; margin:0 auto; line-height:1.5;">config.js の SHIORI_FILE_ID にGoogleドライブのしおりPDFのファイルIDを設定すると、ここにPDFが埋め込み表示されます。</p>
+        </div>
+      </body>
+      </html>
+    `;
+    iframe.src = 'data:text/html;charset=utf-8,' + encodeURIComponent(demoHtml);
+    downloadBtn.href = '#';
+    downloadBtn.onclick = (e) => {
+      e.preventDefault();
+      alert('しおりのファイルIDが設定されていません。');
+    };
     return;
   }
 
@@ -328,6 +342,7 @@ function fetchShiori() {
 
   iframe.src = previewUrl;
   downloadBtn.href = viewUrl;
+  downloadBtn.onclick = null; // リセット
 }
 
 
@@ -342,7 +357,7 @@ function fetchYouTube() {
   wrapper.style.display = 'none';
   empty.style.display = 'none';
 
-  if (isConfigDummy() || !window.CONFIG.YOUTUBE_TXT_FILE_ID || window.CONFIG.YOUTUBE_TXT_FILE_ID === 'YOUR_YOUTUBE_TXT_FILE_ID') {
+  if (!window.CONFIG.YOUTUBE_TXT_FILE_ID || window.CONFIG.YOUTUBE_TXT_FILE_ID === 'YOUR_YOUTUBE_TXT_FILE_ID' || window.CONFIG.YOUTUBE_TXT_FILE_ID === '') {
     // デモ用：新潟大会を想起させる適当なプロモーション動画（例として新潟県の観光PV動画など）を表示
     setTimeout(() => {
       loading.style.display = 'none';
